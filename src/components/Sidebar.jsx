@@ -1,24 +1,28 @@
-const menuItems = [
-  "Home",
-  "LLM Configuration",
-  "Agents",
-  "Tasks",
-  "Tools",
-  "Scheduler",
+import { NavLink } from "react-router-dom";
+
+const MENU_ITEMS = [
+  { name: "Home", path: "/", end: true },
+  { name: "LLM Configuration", path: "/llm-config" },
+  { name: "Agents", path: "/agents" },
+  { name: "Tasks", path: "/tasks" },
+  { name: "Tools", path: "/tools" },
+  { name: "Scheduler", path: "/scheduler" },
 ];
 
 function Sidebar() {
   return (
     <div className="sidebar">
       <h2 className="logo">AI Console</h2>
-
       <ul className="menu">
-        {menuItems.map((item, index) => (
-          <li
-            key={index}
-            className={item === "LLM Configuration" ? "active" : ""}
-          >
-            {item}
+        {MENU_ITEMS.map((item) => (
+          <li key={item.path}>
+            <NavLink
+              to={item.path}
+              end={item.end || false}
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              {item.name}
+            </NavLink>
           </li>
         ))}
       </ul>

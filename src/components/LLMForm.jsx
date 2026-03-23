@@ -1,124 +1,125 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+const PROVIDERS = [
+  { label: "OpenAI", value: "openai", defaultUrl: "https://api.openai.com/v1" },
+  { label: "Anthropic", value: "anthropic", defaultUrl: "https://api.anthropic.com" },
+  { label: "Ollama", value: "ollama", defaultUrl: "http://localhost:11434" },
+  { label: "Azure OpenAI", value: "azure", defaultUrl: "https://<resource>.openai.azure.com" },
+  { label: "Groq", value: "groq", defaultUrl: "https://api.groq.com/openai/v1" },
+  { label: "Gemini", value: "groq", defaultUrl: "https://api.groq.com/openai/v1" },
+];
 
 function LLMForm() {
-  const [selectedLLM, setSelectedLLM] = useState("OpenAI");
-
+  const [provider, setProvider] = useState("");
   const [apiUrl, setApiUrl] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [model, setModel] = useState("");
+  const [showKey, setShowKey] = useState(false);
+  const [status, setStatus] = useState(null); // { type: "success"|"error", msg }
+  const [loading, setLoading] = useState(false);
 
-  const [message, setMessage] = useState("");
+  useEffect(() => {
+    fetch("http://127.0.0.1:8000/llm-config")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.length > 0) {
+          const cfg = data[0];
+          setProvider(cfg.provider || "");
+          setApiUrl(cfg.api_url || "");
+          setModel(cfg.model || "");
+          // api_key is encrypted server-side — don't prefill
+        }
+      })
+      .catch(() => {});
+  }, []);
 
-  const llms = ["OpenAI", "Anthropic", "Gemini", "Azure", "AWS", "Ollama"];
+  const handleProviderChange = (val) => {
+    setProvider(val);
+    const found = PROVIDERS.find((p) => p.value === val);
+    if (found) setApiUrl(found.defaultUrl);
+  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!apiUrl || !apiKey || !model) {
-      alert("All fields are mandatory");
+  const handleSave = async () => {
+    if (!provider || !apiUrl || !apiKey || !model) {
+      setStatus({ type: "error", msg: "All fields are required." });
       return;
     }
-
+    setLoading(true);
+    setStatus(null);
     try {
       const res = await fetch("http://127.0.0.1:8000/llm-config", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          provider: selectedLLM,
+          provider,
           api_url: apiUrl,
           api_key: apiKey,
-          model: model,
+          model,
         }),
       });
-
-      if (!res.ok) {
-        throw new Error("Failed to save");
+      if (res.ok) {
+        setStatus({ type: "success", msg: "Configuration saved successfully." });
+        setApiKey("");
+      } else {
+        setStatus({ type: "error", msg: "Failed to save. Please try again." });
       }
-
-      const data = await res.json();
-      console.log(data);
-
-      // ✅ success message
-      setMessage("Configuration saved successfully");
-
-      // ✅ clear form
-      setApiUrl("");
-      setApiKey("");
-      setModel("");
-
-      // auto hide message
-      setTimeout(() => setMessage(""), 3000);
-
-    } catch (err) {
-      console.error(err);
-      alert("Error saving");
+    } catch {
+      setStatus({ type: "error", msg: "Network error. Is the backend running?" });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="card">
-      <h1>LLM Configuration</h1>
+      <h2>LLM Configuration</h2>
+      <p className="subtitle">Configure the language model provider for your agents.</p>
 
-      {/* Tabs */}
-      <div className="tabs">
-        {llms.map((llm) => (
-          <button
-            key={llm}
-            type="button"
-            className={selectedLLM === llm ? "active" : ""}
-            onClick={() => setSelectedLLM(llm)}
-          >
-            {llm}
-          </button>
+      <label>Provider</label>
+      <select value={provider} onChange={(e) => handleProviderChange(e.target.value)}>
+        <option value="">Select a provider</option>
+        {PROVIDERS.map((p) => (
+          <option key={p.value} value={p.value}>{p.label}</option>
         ))}
-      </div>
+      </select>
 
+      <label>API URL</label>
+      <input
+        type="text"
+        placeholder="https://api.example.com/v1"
+        value={apiUrl}
+        onChange={(e) => setApiUrl(e.target.value)}
+      />
 
-
-      {/* Form */}
-      <form onSubmit={handleSubmit}>
-        <div className="form-grid">
-          <div>
-            <label>
-              API URL <span className="required">*</span>
-            </label>
-            <input
-              type="text"
-              value={apiUrl}
-              onChange={(e) => setApiUrl(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label>
-              API Key <span className="required">*</span>
-            </label>
-            <input
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label>
-              Model <span className="required">*</span>
-            </label>
-            <input
-              type="text"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
-            />
-          </div>
-        </div>
-        {/* ✅ Success Message */}
-        {message && <div className="success-msg">{message}</div>}
-        <button className="save-btn" type="submit">
-          Save Configuration
+      <label>API Key</label>
+      <div className="input-row">
+        <input
+          type={showKey ? "text" : "password"}
+          placeholder="Enter your API key"
+          value={apiKey}
+          onChange={(e) => setApiKey(e.target.value)}
+        />
+        <button className="toggle-btn" onClick={() => setShowKey((s) => !s)}>
+          {showKey ? "Hide" : "Show"}
         </button>
-      </form>
+      </div>
+      <p className="hint">Your key is encrypted before being stored.</p>
+
+      <label>Model</label>
+      <input
+        type="text"
+        placeholder="e.g. gpt-4o, claude-3-5-sonnet, llama3"
+        value={model}
+        onChange={(e) => setModel(e.target.value)}
+      />
+
+      {status && (
+        <div className={`status-msg ${status.type}`}>{status.msg}</div>
+      )}
+
+      <button className="save-btn" onClick={handleSave} disabled={loading}>
+        {loading ? "Saving..." : "Save Configuration"}
+      </button>
     </div>
   );
 }

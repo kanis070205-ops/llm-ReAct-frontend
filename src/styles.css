@@ -1,143 +1,518 @@
-/* Base */
+/* ── Reset & Base ── */
+*, *::before, *::after { box-sizing: border-box; }
+
 body {
   margin: 0;
   font-family: "Segoe UI", sans-serif;
-  background: #f6f4ff;
+  background: #f0eeff;
+  color: #1a1a2e;
 }
 
-/* Layout */
+/* ── App Shell ── */
 .app {
   display: flex;
   height: 100vh;
+  overflow: hidden;
 }
 
-.content {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* Sidebar */
+/* ── Sidebar ── */
 .sidebar {
-  width: 240px;
-  background: linear-gradient(180deg, #4b2aad, #3a1f8f);
-  color: white;
-  padding: 20px;
+  width: 230px;
+  min-width: 230px;
+  background: #1e1b4b;
+  color: #c4b5fd;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1rem;
+  overflow-y: auto;
 }
 
-.logo {
-  margin-bottom: 30px;
-  font-size: 20px;
+.sidebar .logo {
+  color: #fff;
+  font-size: 1.2rem;
+  margin: 0 0 2rem 0.5rem;
+  letter-spacing: 0.5px;
 }
 
-.menu {
+.sidebar .menu {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
-.menu li {
-  padding: 12px;
-  margin-bottom: 8px;
-  border-radius: 8px;
-  cursor: pointer;
-  opacity: 0.85;
+.sidebar .menu > li {
+  margin-bottom: 2px;
 }
 
-.menu li:hover {
-  background: rgba(255, 255, 255, 0.1);
-  opacity: 1;
-}
-
-.menu li.active {
-  background: #6c4dff;
-  font-weight: bold;
-  opacity: 1;
-}
-
-/* Card */
-.card {
-  background: white;
-  padding: 30px;
-  width: 600px;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-}
-
-.card h1 {
-  margin-bottom: 20px;
-}
-
-/* Tabs */
-.tabs {
+.sidebar .menu > li > a {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  color: #c4b5fd;
+  text-decoration: none;
+  border-radius: 7px;
+  font-size: 0.92rem;
+  transition: background 0.15s, color 0.15s;
 }
 
-.tabs button {
-  padding: 8px 14px;
-  border: none;
-  border-radius: 6px;
-  background: #eee;
-  cursor: pointer;
+.sidebar .menu > li > a:hover {
+  background: #2d2a6e;
+  color: #fff;
 }
 
-.tabs button.active {
+.sidebar .menu > li > a.active {
   background: #4b2aad;
-  color: white;
+  color: #fff;
+  font-weight: 600;
 }
 
-/* Form */
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 15px;
+.chevron {
+  font-size: 0.75rem;
+  opacity: 0.7;
 }
 
-.form-grid label {
+/* Sub-menu under Agents */
+.sub-menu {
+  list-style: none;
+  padding: 0 0 0 12px;
+  margin: 4px 0 0 0;
+}
+
+.sub-menu .group-label {
+  margin-top: 8px;
+}
+
+.sub-menu .group-label > span {
   display: block;
-  margin-bottom: 5px;
-  font-weight: 500;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #7c6fcd;
+  padding: 4px 8px 2px;
 }
 
-.form-grid input {
+.sub-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sub-menu .agent-item {
+  padding: 5px 10px;
+  font-size: 0.85rem;
+  color: #a89ee0;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.sub-menu .agent-item:hover {
+  background: #2d2a6e;
+  color: #fff;
+}
+
+.sub-menu .agent-item.empty {
+  font-style: italic;
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ── Main Content ── */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+}
+
+/* ── Card ── */
+.card {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 14px;
+  box-shadow: 0 4px 24px rgba(75, 42, 173, 0.08);
+  max-width: 640px;
+}
+
+.card h2 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.4rem;
+  color: #1e1b4b;
+}
+
+.card label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #4b2aad;
+  margin: 1rem 0 4px;
+}
+
+.card input,
+.card select,
+.card textarea {
   width: 100%;
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+  padding: 9px 12px;
+  border: 1.5px solid #d1c4f7;
+  border-radius: 7px;
+  font-size: 0.92rem;
+  font-family: inherit;
+  background: #faf9ff;
+  transition: border-color 0.15s;
+  outline: none;
 }
 
-/* Button */
+.card input:focus,
+.card select:focus,
+.card textarea:focus {
+  border-color: #4b2aad;
+}
+
+.card textarea {
+  resize: vertical;
+}
+
+.subtitle {
+  color: #6b7280;
+  font-size: 0.88rem;
+  margin: 0 0 0.5rem;
+}
+
+.hint {
+  font-size: 0.78rem;
+  color: #9ca3af;
+  margin: 3px 0 0;
+}
+
+/* API key row */
+.input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.input-row input {
+  flex: 1;
+}
+
+.toggle-btn {
+  padding: 0 14px;
+  background: #ede9fe;
+  color: #4b2aad;
+  border: 1.5px solid #d1c4f7;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.toggle-btn:hover {
+  background: #ddd6fe;
+}
+
+/* Status messages */
+.status-msg {
+  padding: 9px 14px;
+  border-radius: 7px;
+  font-size: 0.88rem;
+  margin-top: 1rem;
+}
+
+.status-msg.success {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #6ee7b7;
+}
+
+.status-msg.error {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fca5a5;
+}
+
+.name-status {
+  font-size: 0.82rem;
+  margin-top: 3px;
+}
+
+/* Buttons */
 .save-btn {
-  margin-top: 20px;
-  padding: 12px;
+  margin-top: 1.5rem;
+  padding: 11px;
   width: 100%;
   background: #4b2aad;
-  color: white;
+  color: #fff;
   border: none;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 0.95rem;
   cursor: pointer;
+  transition: background 0.15s;
 }
 
-.save-btn:hover {
+.save-btn:hover:not(:disabled) {
   background: #5f3bdb;
 }
 
-/* Required */
-.required {
-  color: red;
-  margin-left: 4px;
+.save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-/* Success Message */
-.success-msg {
-  background: #e6fffa;
-  color: #065f46;
-  padding: 10px 14px;
+.cancel-btn {
+  padding: 11px 20px;
+  background: #f3f4f6;
+  color: #374151;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.cancel-btn:hover {
+  background: #e5e7eb;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 1.5rem;
+}
+
+.form-actions .save-btn {
+  margin-top: 0;
+  flex: 1;
+}
+
+/* ── Agents Page Layout ── */
+.agents-page {
+  display: flex;
+  height: 100%;
+  gap: 0;
+}
+
+.agents-left {
+  width: 240px;
+  min-width: 240px;
+  border-right: 1px solid #e5e7eb;
+  padding: 1rem;
+  overflow-y: auto;
+  background: #faf9ff;
+}
+
+.agents-left-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #1e1b4b;
+  margin-bottom: 1rem;
+}
+
+.add-agent-btn {
+  background: #4b2aad;
+  color: #fff;
+  border: none;
   border-radius: 6px;
-  margin-bottom: 15px;
-  border: 1px solid #34d399;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.add-agent-btn:hover {
+  background: #5f3bdb;
+}
+
+.agent-group {
+  margin-bottom: 1rem;
+}
+
+.group-title {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #6b7280;
+  font-weight: 600;
+  padding: 4px 6px;
+}
+
+.agent-group ul {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0;
+}
+
+.agent-group li {
+  padding: 7px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: #374151;
+  transition: background 0.15s;
+}
+
+.agent-group li:hover {
+  background: #ede9fe;
+  color: #4b2aad;
+}
+
+.agent-group li.active {
+  background: #4b2aad;
+  color: #fff;
+  font-weight: 600;
+}
+
+.agent-group li.empty {
+  font-style: italic;
+  color: #9ca3af;
+  cursor: default;
+  font-size: 0.82rem;
+}
+
+.agents-right {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+/* ── Empty / Placeholder ── */
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60%;
+  color: #9ca3af;
+  font-size: 0.95rem;
+}
+
+.placeholder {
+  padding: 2rem;
+  color: #6b7280;
+}
+
+/* ── Agent Card (wider) ── */
+.agent-card {
+  max-width: 780px;
+}
+
+/* ── Skills upload row ── */
+.upload-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.upload-btn {
   display: inline-block;
+  padding: 6px 14px;
+  background: #ede9fe;
+  color: #4b2aad;
+  border: 1.5px solid #d1c4f7;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.upload-btn:hover {
+  background: #ddd6fe;
+}
+
+.file-name {
+  font-size: 0.82rem;
+  color: #065f46;
+}
+
+/* ── Dry Run section ── */
+.dry-run-section {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  background: #f5f3ff;
+  border: 1.5px solid #ddd6fe;
+  border-radius: 10px;
+}
+
+.dry-run-section h3 {
+  margin: 0 0 2px;
+  font-size: 1rem;
+  color: #1e1b4b;
+}
+
+.dry-run-section textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid #d1c4f7;
+  border-radius: 7px;
+  font-size: 0.92rem;
+  font-family: inherit;
+  background: #fff;
+  resize: vertical;
+  outline: none;
+  margin-top: 8px;
+  box-sizing: border-box;
+}
+
+.dry-run-section textarea:focus {
+  border-color: #4b2aad;
+}
+
+.dry-run-btn {
+  margin-top: 8px;
+  padding: 8px 20px;
+  background: #1e1b4b;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.dry-run-btn:hover:not(:disabled) {
+  background: #4b2aad;
+}
+
+.dry-run-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.dry-output {
+  background: #111827;
+  color: #6ee7b7;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  margin-top: 10px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ── Skills preview in detail view ── */
+.skills-preview {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #374151;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* ── Warning hint ── */
+.hint.warn {
+  color: #92400e;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  margin-top: 4px;
 }
