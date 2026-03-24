@@ -67,6 +67,7 @@ function Agents() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           description,
+          category,
           skills,
           prompt: dryPrompt,
           llm_config_id: selectedLlm,
