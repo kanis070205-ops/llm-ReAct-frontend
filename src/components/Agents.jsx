@@ -22,6 +22,10 @@ function Agents() {
   const [dryOutput, setDryOutput] = useState("");
   const [dryRunning, setDryRunning] = useState(false);
 
+  // tools
+  const [availableTools, setAvailableTools] = useState([]);
+  const [selectedTools, setSelectedTools] = useState([]);
+
   // status
   const [nameStatus, setNameStatus] = useState("");
   const [formError, setFormError] = useState("");
@@ -34,6 +38,20 @@ function Agents() {
       .then(setLlmConfigs)
       .catch(() => {});
   }, []);
+
+  // load available tools
+  useEffect(() => {
+    fetch("http://127.0.0.1:8000/tools")
+      .then((r) => r.json())
+      .then(setAvailableTools)
+      .catch(() => {});
+  }, []);
+
+  const toggleTool = (toolName) => {
+    setSelectedTools((prev) =>
+      prev.includes(toolName) ? prev.filter((t) => t !== toolName) : [...prev, toolName]
+    );
+  };
 
   const checkName = async () => {
     if (!name) return;
@@ -71,6 +89,7 @@ function Agents() {
           skills,
           prompt: dryPrompt,
           llm_config_id: selectedLlm,
+          tools: selectedTools,
         }),
       });
       const data = await res.json();
@@ -93,6 +112,7 @@ function Agents() {
     setSkills("");
     setSkillsFileName("");
     setSelectedLlm("");
+    setSelectedTools([]);
     setDryPrompt("");
     setDryOutput("");
     setNameStatus("");
@@ -124,6 +144,7 @@ function Agents() {
           category,
           skills,
           llm_config_id: selectedLlm || null,
+          tools: selectedTools,
         }),
       });
       if (!res.ok) {
@@ -251,6 +272,28 @@ function Agents() {
               <p className="hint">Required to run and save the agent.</p>
             )}
 
+            {/* Tools Selection — optional */}
+            <label>Tools <span className="hint-inline">(optional)</span></label>
+            {availableTools.length === 0 ? (
+              <p className="hint">No tools available.</p>
+            ) : (
+              <div className="tools-grid">
+                {availableTools.map((tool) => (
+                  <label key={tool.name} className="tool-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={selectedTools.includes(tool.name)}
+                      onChange={() => toggleTool(tool.name)}
+                    />
+                    <span className="tool-label">
+                      <strong>{tool.name}</strong>
+                      <span className="tool-desc">{tool.description}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
+
             {/* Dry Run */}
             <div className="dry-run-section">
               <h3>Dry Run</h3>
@@ -303,6 +346,19 @@ function Agents() {
               <>
                 <label>Skills</label>
                 <pre className="skills-preview">{selectedAgent.skills}</pre>
+              </>
+            )}
+
+            {selectedAgent.tools && selectedAgent.tools.length > 0 && (
+              <>
+                <label>Tools</label>
+                <div className="tools-grid">
+                  {selectedAgent.tools.map((t) => (
+                    <div key={t} className="tool-checkbox" style={{ cursor: "default" }}>
+                      <span className="tool-label"><strong>{t}</strong></span>
+                    </div>
+                  ))}
+                </div>
               </>
             )}
           </div>

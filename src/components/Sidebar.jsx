@@ -5,7 +5,6 @@ const MENU_ITEMS = [
   { name: "LLM Configuration", path: "/llm-config" },
   { name: "Agents", path: "/agents" },
   { name: "Tasks", path: "/tasks" },
-  { name: "Tools", path: "/tools" },
   { name: "Scheduler", path: "/scheduler" },
 ];
 

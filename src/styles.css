@@ -516,3 +516,57 @@ body {
   font-size: 0.82rem;
   margin-top: 4px;
 }
+
+/* ── Tools Grid (2x2 checkbox layout) ── */
+.tools-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.tool-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1.5px solid #d1c4f7;
+  border-radius: 8px;
+  background: #faf9ff;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.tool-checkbox:hover {
+  border-color: #4b2aad;
+  background: #ede9fe;
+}
+
+.tool-checkbox input[type="checkbox"] {
+  width: auto;
+  margin-top: 2px;
+  accent-color: #4b2aad;
+  flex-shrink: 0;
+}
+
+.tool-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tool-label strong {
+  font-size: 0.85rem;
+  color: #1e1b4b;
+}
+
+.tool-desc {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.hint-inline {
+  font-weight: 400;
+  color: #9ca3af;
+  font-size: 0.78rem;
+}

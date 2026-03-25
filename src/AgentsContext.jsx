@@ -18,11 +18,12 @@ export function AgentsProvider({ children }) {
     try {
       const res = await fetch("http://127.0.0.1:8000/agents");
       const data = await res.json();
-      setAgents(data);
       const g = DEFAULT_GROUPS.reduce((acc, cat) => {
-        acc[cat] = data.filter((a) => a.category === cat);
+        acc[cat] = data.filter(
+          (a) => (a.category || "").trim() === cat
+        );
         return acc;
-      }, {});
+}, {});
       setGrouped(g);
     } catch (e) {
       console.error("Failed to fetch agents", e);
@@ -38,6 +39,7 @@ export function AgentsProvider({ children }) {
       return updated;
     });
   };
+  
 
   return (
     <AgentsContext.Provider value={{ agents, grouped, addAgent }}>
