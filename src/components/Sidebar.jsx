@@ -11,7 +11,7 @@ const MENU_ITEMS = [
 function Sidebar() {
   return (
     <div className="sidebar">
-      <h2 className="logo">AI Console</h2>
+      <h2 className="logo">ReAct LLM</h2>
       <ul className="menu">
         {MENU_ITEMS.map((item) => (
           <li key={item.path}>
