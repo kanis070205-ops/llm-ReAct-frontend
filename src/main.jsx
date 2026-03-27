@@ -7,6 +7,8 @@ import LLMForm from "./components/LLMForm";
 import Agents from "./components/Agents";
 import Tasks from "./components/Tasks";
 import ToolsMenu from "./components/ToolsMenu";
+import Scheduler from "./components/Scheduler";
+import History from "./components/History";
 import { AgentsProvider } from "./AgentsContext";
 import { TasksProvider } from "./TasksContext";
 import "./styles.css";
@@ -22,7 +24,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             <Route path="agents" element={<Agents />} />
             <Route path="tasks" element={<Tasks />} />
             <Route path="tools" element={<ToolsMenu />} />
-            {/* <Route path="scheduler" element={<div className="placeholder"><h2>Scheduler</h2><p>Coming soon.</p></div>} /> */}
+            <Route path="scheduler" element={<Scheduler />} />
+            <Route path="history" element={<History />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

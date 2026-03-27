@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect } from "react";
 
 const AgentsContext = createContext();
 
-const DEFAULT_GROUPS = ["Development", "Code Quality"];
+const DEFAULT_GROUPS = ["Development", "Knowledge & Research"];
 
 export function AgentsProvider({ children }) {
   const [agents, setAgents] = useState([]);
@@ -39,10 +39,21 @@ export function AgentsProvider({ children }) {
       return updated;
     });
   };
-  
+
+  const updateAgent = (updated) => {
+    setAgents((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
+    setGrouped((prev) => {
+      const next = DEFAULT_GROUPS.reduce((acc, g) => ({ ...acc, [g]: [] }), {});
+      [...agents.filter((a) => a.id !== updated.id), updated].forEach((a) => {
+        const cat = a.category;
+        if (next[cat]) next[cat].push(a);
+      });
+      return next;
+    });
+  };
 
   return (
-    <AgentsContext.Provider value={{ agents, grouped, addAgent }}>
+    <AgentsContext.Provider value={{ agents, grouped, addAgent, updateAgent }}>
       {children}
     </AgentsContext.Provider>
   );

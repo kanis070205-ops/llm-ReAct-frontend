@@ -6,6 +6,7 @@ const MENU_ITEMS = [
   { name: "Agents", path: "/agents" },
   { name: "Tasks", path: "/tasks" },
   { name: "Scheduler", path: "/scheduler" },
+  { name: "History", path: "/history" },
 ];
 
 function Sidebar() {

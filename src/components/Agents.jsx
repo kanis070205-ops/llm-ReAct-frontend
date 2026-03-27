@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { useAgents } from "../AgentsContext";
 
-const DEFAULT_GROUPS = ["Development", "Code Quality"];
+const DEFAULT_GROUPS = ["Development", "Knowledge & Research"];
 
 function Agents() {
-  const { grouped, addAgent } = useAgents();
+  const { grouped, addAgent, updateAgent } = useAgents();
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [editMode, setEditMode] = useState(false);
 
   // form fields
   const [name, setName] = useState("");
@@ -117,6 +118,46 @@ function Agents() {
     setDryOutput("");
     setNameStatus("");
     setFormError("");
+    setEditMode(false);
+  };
+
+  const handleEdit = (agent) => {
+    setName(agent.name);
+    setDescription(agent.description);
+    setCategory(agent.category);
+    setSkills(agent.skills || "");
+    setSkillsFileName("");
+    setSelectedLlm(agent.llm_config_id || "");
+    setSelectedTools(agent.tools || []);
+    setDryPrompt(""); setDryOutput("");
+    setNameStatus(""); setFormError("");
+    setEditMode(true); setShowForm(true);
+  };
+
+  const handleUpdate = async () => {
+    if (!name || !description || !category) {
+      setFormError("Name, description, and category are required.");
+      return;
+    }
+    if (!selectedLlm) { setFormError("LLM Configuration is required."); return; }
+    setSaving(true); setFormError("");
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/agents/${selectedAgent.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name, description, category, skills,
+          llm_config_id: selectedLlm,
+          tools: selectedTools,
+        }),
+      });
+      if (!res.ok) { setFormError("Failed to update agent."); return; }
+      const updated = await res.json();
+      updateAgent(updated);
+      setSelectedAgent(updated);
+      resetForm(); setShowForm(false);
+    } catch { setFormError("Network error."); }
+    finally { setSaving(false); }
   };
 
   const handleCreate = async () => {
@@ -186,7 +227,7 @@ function Agents() {
                   <li
                     key={a.id}
                     className={selectedAgent?.id === a.id ? "active" : ""}
-                    onClick={() => { setSelectedAgent(a); setShowForm(false); }}
+                    onClick={() => { setSelectedAgent(a); setShowForm(false); setEditMode(false); }}
                   >
                     {a.name}
                   </li>
@@ -205,7 +246,7 @@ function Agents() {
         {/* CREATE FORM */}
         {showForm && (
           <div className="card agent-card">
-            <h2>Create Agent</h2>
+            <h2>{editMode ? "Edit Agent" : "Create Agent"}</h2>
 
             <label>Agent Name *</label>
             <input
@@ -213,6 +254,7 @@ function Agents() {
               onChange={(e) => { setName(e.target.value); setNameStatus(""); }}
               onBlur={checkName}
               placeholder="e.g. Code Reviewer"
+              disabled={editMode}
             />
             {nameStatus && <div className="name-status">{nameStatus}</div>}
 
@@ -326,8 +368,8 @@ function Agents() {
               <button className="cancel-btn" onClick={() => { setShowForm(false); resetForm(); }}>
                 Cancel
               </button>
-              <button className="save-btn" onClick={handleCreate} disabled={saving}>
-                {saving ? "Saving..." : "Save Agent"}
+              <button className="save-btn" onClick={editMode ? handleUpdate : handleCreate} disabled={saving}>
+                {saving ? "Saving..." : editMode ? "Update Agent" : "Save Agent"}
               </button>
             </div>
           </div>
@@ -336,8 +378,14 @@ function Agents() {
         {/* AGENT DETAIL */}
         {selectedAgent && !showForm && (
           <div className="card agent-card">
-            <h2>{selectedAgent.name}</h2>
-            <p className="subtitle">{selectedAgent.category}</p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <div>
+                <h2>{selectedAgent.name}</h2>
+                <p className="subtitle">{selectedAgent.category}</p>
+              </div>
+              <button className="dry-run-btn" onClick={() => handleEdit(selectedAgent)}
+                style={{ marginTop: 4 }}>✏ Edit</button>
+            </div>
 
             <label>Description</label>
             <p>{selectedAgent.description}</p>
@@ -348,6 +396,13 @@ function Agents() {
                 <pre className="skills-preview">{selectedAgent.skills}</pre>
               </>
             )}
+
+            <label>LLM</label>
+            <p style={{ color: "#6b7280", fontSize: "0.88rem" }}>
+              {llmConfigs.find((c) => c.id === selectedAgent.llm_config_id)
+                ? `${llmConfigs.find((c) => c.id === selectedAgent.llm_config_id).provider} — ${llmConfigs.find((c) => c.id === selectedAgent.llm_config_id).model}`
+                : selectedAgent.llm_config_id}
+            </p>
 
             {selectedAgent.tools && selectedAgent.tools.length > 0 && (
               <>
