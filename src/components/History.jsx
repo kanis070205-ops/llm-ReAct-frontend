@@ -166,13 +166,58 @@ function History() {
 
             {selectedRun.output && Object.keys(selectedRun.output).length > 0 && (
               <>
-                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, color: "#4b2aad", margin: "1rem 0 4px" }}>Agent Outputs</label>
-                {Object.entries(selectedRun.output).map(([agentName, output]) => (
-                  <div key={agentName} style={{ marginBottom: 12 }}>
-                    <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "#4b2aad", marginBottom: 4 }}>{agentName}</div>
-                    <pre className="dry-output">{typeof output === "string" ? output : JSON.stringify(output, null, 2)}</pre>
+                <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, color: "#4b2aad", margin: "1rem 0 4px" }}>
+                  🐳 Container Output
+                </label>
+
+                {/* ReAct steps */}
+                {selectedRun.output.steps?.length > 0 && (
+                  <div style={{ marginBottom: 16 }}>
+                    <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "#6b7280", marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                      ReAct Trace
+                    </div>
+                    {selectedRun.output.steps.map((step, i) => (
+                      <div key={i} style={{
+                        background: "#f9fafb", border: "1px solid #e5e7eb",
+                        borderRadius: 8, padding: "10px 14px", marginBottom: 8, fontSize: "0.82rem"
+                      }}>
+                        <div style={{ color: "#6b7280", marginBottom: 4 }}>
+                          <strong style={{ color: "#374151" }}>Thought:</strong> {step.thought}
+                        </div>
+                        <div style={{ color: "#6b7280", marginBottom: 4 }}>
+                          <strong style={{ color: "#374151" }}>Action:</strong>{" "}
+                          <code style={{ background: "#ede9fe", color: "#4b2aad", padding: "1px 6px", borderRadius: 4 }}>
+                            {step.action}
+                          </code>{" "}
+                          <span style={{ color: "#9ca3af" }}>← {step.action_input}</span>
+                        </div>
+                        <div style={{ color: "#6b7280" }}>
+                          <strong style={{ color: "#374151" }}>Observation:</strong> {step.observation}
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
+
+                {/* Final answer */}
+                {selectedRun.output.final_answer && (
+                  <div style={{ borderTop: "2px solid #4b2aad", paddingTop: 12 }}>
+                    <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "#4b2aad", marginBottom: 6 }}>
+                      ✦ Final Answer
+                    </div>
+                    <pre className="dry-output">{selectedRun.output.final_answer}</pre>
+                  </div>
+                )}
+
+                {/* Fallback: raw output if not Docker format */}
+                {!selectedRun.output.final_answer && !selectedRun.output.steps && (
+                  Object.entries(selectedRun.output).map(([key, val]) => (
+                    <div key={key} style={{ marginBottom: 12 }}>
+                      <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "#4b2aad", marginBottom: 4 }}>{key}</div>
+                      <pre className="dry-output">{typeof val === "string" ? val : JSON.stringify(val, null, 2)}</pre>
+                    </div>
+                  ))
+                )}
               </>
             )}
           </div>

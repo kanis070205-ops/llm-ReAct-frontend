@@ -108,7 +108,7 @@ function Scheduler() {
         body: JSON.stringify({ task_id: taskIdToRun, prompt: runPrompt || null }),
       });
       const data = await res.json();
-      if (res.ok) setRunResult(data.results);
+      if (res.ok) setRunResult(data.result);
       else setRunError(data.detail || "Run failed.");
     } catch {
       setRunError("Network error.");
@@ -129,34 +129,70 @@ function Scheduler() {
             + New
           </button>
         </div>
-        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-          {schedules.length === 0 ? (
-            <li className="agent-group"><ul><li className="empty">No schedules yet</li></ul></li>
-          ) : (
-            schedules.map((s) => (
-              <li key={s.id} style={{ marginBottom: 2 }}>
-                <div
-                  className={`agent-group li`}
-                  style={{
-                    padding: "7px 10px", borderRadius: 6, cursor: "pointer",
-                    fontSize: "0.88rem",
-                    color: selectedSchedule?.id === s.id ? "#fff" : "#374151",
-                    background: selectedSchedule?.id === s.id ? "#4b2aad" : "transparent",
-                    fontWeight: selectedSchedule?.id === s.id ? 600 : 400,
-                    transition: "background 0.15s",
-                    opacity: s.enabled ? 1 : 0.5,
-                  }}
-                  onClick={() => { setSelectedSchedule(s); setShowForm(false); setRunResult(null); setRunError(""); setRunPrompt(""); }}
-                >
-                  <div>{getTaskName(s.task_id)}</div>
-                  <div style={{ fontSize: "0.75rem", color: selectedSchedule?.id === s.id ? "#c4b5fd" : "#9ca3af" }}>
-                    {TRIGGER_LABELS[s.trigger_type] || s.trigger_type}
+        {schedules.length === 0 && (
+          <p style={{ padding: "6px 10px", fontSize: "0.82rem", color: "#9ca3af" }}>No schedules yet</p>
+        )}
+
+        {/* Active schedules */}
+        {schedules.filter(s => s.enabled).length > 0 && (
+          <>
+            <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "#4b2aad", padding: "6px 10px 2px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Active
+            </div>
+            <ul style={{ listStyle: "none", padding: 0, margin: "0 0 8px" }}>
+              {schedules.filter(s => s.enabled).map((s) => (
+                <li key={s.id} style={{ marginBottom: 2 }}>
+                  <div
+                    style={{
+                      padding: "7px 10px", borderRadius: 6, cursor: "pointer",
+                      fontSize: "0.88rem",
+                      color: selectedSchedule?.id === s.id ? "#fff" : "#374151",
+                      background: selectedSchedule?.id === s.id ? "#4b2aad" : "transparent",
+                      fontWeight: selectedSchedule?.id === s.id ? 600 : 400,
+                      transition: "background 0.15s",
+                    }}
+                    onClick={() => { setSelectedSchedule(s); setShowForm(false); setRunResult(null); setRunError(""); setRunPrompt(""); }}
+                  >
+                    <div>{getTaskName(s.task_id)}</div>
+                    <div style={{ fontSize: "0.75rem", color: selectedSchedule?.id === s.id ? "#c4b5fd" : "#9ca3af" }}>
+                      {TRIGGER_LABELS[s.trigger_type] || s.trigger_type}
+                    </div>
                   </div>
-                </div>
-              </li>
-            ))
-          )}
-        </ul>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+
+        {/* Disabled schedules */}
+        {schedules.filter(s => !s.enabled).length > 0 && (
+          <>
+            <div style={{ fontSize: "0.72rem", fontWeight: 700, color: "#9ca3af", padding: "6px 10px 2px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              Disabled
+            </div>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {schedules.filter(s => !s.enabled).map((s) => (
+                <li key={s.id} style={{ marginBottom: 2 }}>
+                  <div
+                    style={{
+                      padding: "7px 10px", borderRadius: 6, cursor: "pointer",
+                      fontSize: "0.88rem", opacity: 0.5,
+                      color: selectedSchedule?.id === s.id ? "#fff" : "#374151",
+                      background: selectedSchedule?.id === s.id ? "#6b7280" : "transparent",
+                      transition: "background 0.15s",
+                    }}
+                    onClick={() => { setSelectedSchedule(s); setShowForm(false); setRunResult(null); setRunError(""); setRunPrompt(""); }}
+                  >
+                    <div>{getTaskName(s.task_id)}</div>
+                    <div style={{ fontSize: "0.75rem", color: selectedSchedule?.id === s.id ? "#e5e7eb" : "#9ca3af" }}>
+                      {TRIGGER_LABELS[s.trigger_type] || s.trigger_type}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </div>
 
       {/* RIGHT */}
@@ -285,12 +321,43 @@ function Scheduler() {
               {runError && <div className="status-msg error" style={{ marginTop: 8 }}>{runError}</div>}
               {runResult && (
                 <div style={{ marginTop: 12 }}>
-                  {Object.entries(runResult).map(([agentName, output]) => (
-                    <div key={agentName} style={{ marginBottom: 10 }}>
-                      <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "#4b2aad", marginBottom: 4 }}>{agentName}</div>
-                      <pre className="dry-output">{output}</pre>
+                  {/* ReAct Steps */}
+                  {runResult.steps?.length > 0 && (
+                    <div style={{ marginBottom: 16 }}>
+                      <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "#4b2aad", marginBottom: 8 }}>
+                        🐳 Container — ReAct Trace
+                      </div>
+                      {runResult.steps.map((step, i) => (
+                        <div key={i} style={{
+                          background: "#f9fafb", border: "1px solid #e5e7eb",
+                          borderRadius: 8, padding: "10px 14px", marginBottom: 8, fontSize: "0.82rem"
+                        }}>
+                          <div style={{ color: "#6b7280", marginBottom: 4 }}>
+                            <strong style={{ color: "#374151" }}>Thought:</strong> {step.thought}
+                          </div>
+                          <div style={{ color: "#6b7280", marginBottom: 4 }}>
+                            <strong style={{ color: "#374151" }}>Action:</strong>{" "}
+                            <code style={{ background: "#ede9fe", color: "#4b2aad", padding: "1px 6px", borderRadius: 4 }}>
+                              {step.action}
+                            </code>{" "}
+                            <span style={{ color: "#9ca3af" }}>← {step.action_input}</span>
+                          </div>
+                          <div style={{ color: "#6b7280" }}>
+                            <strong style={{ color: "#374151" }}>Observation:</strong> {step.observation}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
+                  <div style={{ borderTop: "2px solid #4b2aad", paddingTop: 12 }}>
+                    <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "#4b2aad", marginBottom: 6 }}>
+                      ✦ Final Answer
+                    </div>
+                    <pre className="dry-output">{runResult.final_answer}</pre>
+                  </div>
+                  {runResult.error && (
+                    <div className="status-msg error" style={{ marginTop: 8 }}>{runResult.error}</div>
+                  )}
                 </div>
               )}
             </div>

@@ -6,7 +6,7 @@ const PROVIDERS = [
   { label: "Ollama", value: "ollama", defaultUrl: "http://localhost:11434" },
   { label: "Azure OpenAI", value: "azure", defaultUrl: "https://<resource>.openai.azure.com" },
   { label: "Groq", value: "groq", defaultUrl: "https://api.groq.com/openai/v1" },
-  { label: "Gemini", value: "groq", defaultUrl: "https://api.groq.com/openai/v1" },
+  { label: "Gemini", value: "Gemini", defaultUrl: "https://api.groq.com/openai/v1" },
 ];
 
 function LLMForm() {

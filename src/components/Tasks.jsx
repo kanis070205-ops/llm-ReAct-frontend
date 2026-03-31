@@ -24,6 +24,12 @@ function Tasks() {
   const [dryResults, setDryResults] = useState(null);
   const [dryRunning, setDryRunning] = useState(false);
 
+  // docker run
+  const [dockerPrompt, setDockerPrompt] = useState("");
+  const [dockerResult, setDockerResult] = useState(null);
+  const [dockerRunning, setDockerRunning] = useState(false);
+  const [dockerError, setDockerError] = useState("");
+
   // status
   const [nameStatus, setNameStatus] = useState("");
   const [formError, setFormError] = useState("");
@@ -105,10 +111,32 @@ function Tasks() {
     }
   };
 
+  const handleDockerRun = async (task) => {
+    if (!dockerPrompt) return;
+    setDockerRunning(true);
+    setDockerResult(null);
+    setDockerError("");
+    try {
+      const res = await fetch("http://127.0.0.1:8000/run-task", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ task_id: task.id, prompt: dockerPrompt }),
+      });
+      const data = await res.json();
+      if (res.ok) setDockerResult(data);
+      else setDockerError(data.detail || "Container run failed.");
+    } catch {
+      setDockerError("Could not reach backend.");
+    } finally {
+      setDockerRunning(false);
+    }
+  };
+
   const resetForm = () => {
     setName(""); setDescription(""); setSelectedAgents([]);
     setWorkflow(""); setSelectedLlm(""); setDryPrompt("");
     setDryResults(null); setNameStatus(""); setFormError("");
+    setDockerPrompt(""); setDockerResult(null); setDockerError("");
     setEditMode(false);
   };
 
@@ -180,29 +208,27 @@ function Tasks() {
             + New
           </button>
         </div>
+
         <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
           {tasks.length === 0 ? (
             <li className="agent-group"><ul><li className="empty">No tasks yet</li></ul></li>
-          ) : (
-            tasks.map((t) => (
-              <li key={t.id} className="agent-group" style={{ marginBottom: 2 }}>
-                <div
-                  className={`agent-group li ${selectedTask?.id === t.id ? "active" : ""}`}
-                  style={{
-                    padding: "7px 10px", borderRadius: 6, cursor: "pointer",
-                    fontSize: "0.88rem",
-                    color: selectedTask?.id === t.id ? "#fff" : "#374151",
-                    background: selectedTask?.id === t.id ? "#4b2aad" : "transparent",
-                    fontWeight: selectedTask?.id === t.id ? 600 : 400,
-                    transition: "background 0.15s",
-                  }}
-                  onClick={() => { setSelectedTask(t); setShowForm(false); setEditMode(false); }}
-                >
-                  {t.name}
-                </div>
-              </li>
-            ))
-          )}
+          ) : tasks.map((t) => (
+            <li key={t.id} style={{ marginBottom: 2 }}>
+              <div
+                style={{
+                  padding: "7px 10px", borderRadius: 6, cursor: "pointer",
+                  fontSize: "0.88rem",
+                  color: selectedTask?.id === t.id ? "#fff" : "#374151",
+                  background: selectedTask?.id === t.id ? "#4b2aad" : "transparent",
+                  fontWeight: selectedTask?.id === t.id ? 600 : 400,
+                  transition: "background 0.15s",
+                }}
+                onClick={() => { setSelectedTask(t); setShowForm(false); setEditMode(false); }}
+              >
+                {t.name}
+              </div>
+            </li>
+          ))}
         </ul>
       </div>
 
@@ -296,24 +322,37 @@ function Tasks() {
               </button>
               {dryResults && (
                 <div style={{ marginTop: 12 }}>
-                  {Object.entries(dryResults)
-                    .filter(([key]) => key !== "__synthesis__")
-                    .map(([agentName, output]) => (
-                      <div key={agentName} style={{ marginBottom: 10 }}>
-                        <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "#4b2aad", marginBottom: 4 }}>
-                          {agentName}
+                  {dryResults.steps?.length > 0 && (
+                    <div style={{ marginBottom: 16 }}>
+                      <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "#4b2aad", marginBottom: 8 }}>
+                        🐳 Container — ReAct Trace
+                      </div>
+                      {dryResults.steps.map((step, i) => (
+                        <div key={i} style={{
+                          background: "#f9fafb", border: "1px solid #e5e7eb",
+                          borderRadius: 8, padding: "10px 14px", marginBottom: 8, fontSize: "0.82rem"
+                        }}>
+                          <div style={{ color: "#6b7280", marginBottom: 4 }}>
+                            <strong style={{ color: "#374151" }}>Thought:</strong> {step.thought}
+                          </div>
+                          <div style={{ color: "#6b7280", marginBottom: 4 }}>
+                            <strong style={{ color: "#374151" }}>Action:</strong>{" "}
+                            <code style={{ background: "#ede9fe", color: "#4b2aad", padding: "1px 6px", borderRadius: 4 }}>
+                              {step.action}
+                            </code>{" "}
+                            <span style={{ color: "#9ca3af" }}>← {step.action_input}</span>
+                          </div>
+                          <div style={{ color: "#6b7280" }}>
+                            <strong style={{ color: "#374151" }}>Observation:</strong> {step.observation}
+                          </div>
                         </div>
-                        <pre className="dry-output">{output}</pre>
-                      </div>
-                    ))}
-                  {dryResults["__synthesis__"] && (
-                    <div style={{ marginTop: 16, borderTop: "2px solid #4b2aad", paddingTop: 12 }}>
-                      <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "#4b2aad", marginBottom: 4 }}>
-                        ✦ Final Synthesis
-                      </div>
-                      <pre className="dry-output">{dryResults["__synthesis__"]}</pre>
+                      ))}
                     </div>
                   )}
+                  <div style={{ borderTop: "2px solid #4b2aad", paddingTop: 12 }}>
+                    <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "#4b2aad", marginBottom: 6 }}>✦ Final Answer</div>
+                    <pre className="dry-output">{dryResults.final_answer}</pre>
+                  </div>
                 </div>
               )}
             </div>
@@ -337,8 +376,7 @@ function Tasks() {
                 <h2>{selectedTask.name}</h2>
                 <p className="subtitle">Task</p>
               </div>
-              <button className="dry-run-btn" onClick={() => handleEdit(selectedTask)}
-                style={{ marginTop: 4 }}>✏ Edit</button>
+              <button className="dry-run-btn" onClick={() => handleEdit(selectedTask)}>✏ Edit</button>
             </div>
 
             <label>Description</label>
@@ -367,6 +405,82 @@ function Tasks() {
                 <pre className="skills-preview">{selectedTask.workflow}</pre>
               </>
             )}
+
+            {/* Docker Run */}
+            <div className="dry-run-section" style={{ marginTop: "1.5rem" }}>
+              <h3 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span>🐳 Run in Docker</span>
+                <span style={{ fontSize: "0.75rem", fontWeight: 400, color: "#6b7280" }}>
+                  Full ReAct loop inside isolated container
+                </span>
+              </h3>
+              <textarea
+                rows={3}
+                placeholder="Enter a prompt to run inside the container..."
+                value={dockerPrompt}
+                onChange={(e) => setDockerPrompt(e.target.value)}
+              />
+              <button
+                className="dry-run-btn"
+                onClick={() => handleDockerRun(selectedTask)}
+                disabled={dockerRunning || !dockerPrompt}
+                style={{ marginTop: 8 }}
+              >
+                {dockerRunning ? "⏳ Running container..." : "▶ Run Container"}
+              </button>
+
+              {dockerError && (
+                <div className="status-msg error" style={{ marginTop: 8 }}>{dockerError}</div>
+              )}
+
+              {dockerResult && (
+                <div style={{ marginTop: 16 }}>
+                  {/* ReAct Steps */}
+                  {dockerResult.steps?.length > 0 && (
+                    <div style={{ marginBottom: 16 }}>
+                      <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "#4b2aad", marginBottom: 8 }}>
+                        ReAct Trace
+                      </div>
+                      {dockerResult.steps.map((step, i) => (
+                        <div key={i} style={{
+                          background: "#f9fafb", border: "1px solid #e5e7eb",
+                          borderRadius: 8, padding: "10px 14px", marginBottom: 8,
+                          fontSize: "0.82rem"
+                        }}>
+                          <div style={{ color: "#6b7280", marginBottom: 4 }}>
+                            <strong style={{ color: "#374151" }}>Thought:</strong> {step.thought}
+                          </div>
+                          <div style={{ color: "#6b7280", marginBottom: 4 }}>
+                            <strong style={{ color: "#374151" }}>Action:</strong>{" "}
+                            <code style={{ background: "#ede9fe", color: "#4b2aad", padding: "1px 6px", borderRadius: 4 }}>
+                              {step.action}
+                            </code>{" "}
+                            <span style={{ color: "#9ca3af" }}>← {step.action_input}</span>
+                          </div>
+                          <div style={{ color: "#6b7280" }}>
+                            <strong style={{ color: "#374151" }}>Observation:</strong> {step.observation}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Final Answer */}
+                  <div style={{ borderTop: "2px solid #4b2aad", paddingTop: 12 }}>
+                    <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "#4b2aad", marginBottom: 6 }}>
+                      ✦ Final Answer
+                    </div>
+                    <pre className="dry-output">{dockerResult.final_answer}</pre>
+                  </div>
+
+                  {dockerResult.error && (
+                    <div className="status-msg error" style={{ marginTop: 8 }}>
+                      {dockerResult.error}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
